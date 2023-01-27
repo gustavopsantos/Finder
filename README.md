@@ -1,8 +1,11 @@
-![Preview](Graphics/graphic1.png)
+<div align=center>   
+<img src="Graphics/graphic1.png" width="50%">
 
 # Finder
 ### Fast multi-thread find in files system for unity
+</div>
 
+## Features
 - Helps you to find those implicit method usages that IDEs such as rider cannot find by file indexing
 - Search progress happens asynchronously and does not block you to work
 - Reports current progress
