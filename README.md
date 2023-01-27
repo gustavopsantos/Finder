@@ -9,6 +9,11 @@
 - Scan 40.000 files (*.meta, *.anim, *.unity, *.prefab) in less than 5 seconds (Tested on Ryzen 5600X)
 - Takes fully advantage of your cores, scaling in speed as you have more cores ;) 
 
+## Install via UPM (using Git URL)
+```
+https://github.com/gustavopsantos/finder.git?path=/Assets/Finder/#1.0.0
+```
+
 ## Problem
 [Unity](https://unity.com/) allow us to assign public instance methods invokation to UnityEvents, EventTriggers, Buttons, Animation Events and more.
 And some of those implicit usages cannot be found by JetBrains Rider.
