@@ -1,55 +1,46 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Finder
 {
-	public class FinderSystem
-	{
-		public static async Task<SearchResult> SearchInDirectoryAsync(string search, string directory, StringComparison comparison, SearchOption option, params string[] patterns)
-		{
-			using (var progress = new ProgressReportScope("Finder"))
-			{
-				return await Task.Run(async () =>
-				{
-					var files = DirectoryUtilities.GetFiles(directory, option, patterns);
-					progress.SetTotalSteps(files.Length);
-					var tasks = files.Chunk(32).Select(c => SearchInFilesAsync(search, c, comparison, progress));
-					var result = (await Task.WhenAll(tasks)).SelectMany(x => x).ToArray();
+    public class FinderSystem
+    {
+        public static async Task<SearchResult> SearchInDirectoryAsync(string search, string directory, StringComparison comparison, SearchOption option, params string[] patterns)
+        {
+            using (var progress = new ProgressReportScope("Finder"))
+            {
+                return await Task.Run(() =>
+                {
+                    var files = DirectoryUtilities.GetFiles(directory, option, patterns);
+                    progress.SetTotalSteps(files.Length);
 
-					return new SearchResult
-					{
-						Search = search,
-						FilesScanned = files.Length,
-						SearchMode = option,
-						SearchDirectory = directory,
-						Patterns = patterns,
-						FilesContainingSearch = result
-					};
-				});
-			}
-		}
+                    var result = new ConcurrentBag<string>();
 
-		private static Task<List<string>> SearchInFilesAsync(string search, string[] files, StringComparison comparison, ProgressReportScope progress)
-		{
-			return Task.Run(() =>
-			{
-				var result = new List<string>();
+                    void FindInFile(string filePath)
+                    {
+                        if (File.ReadAllText(filePath).Contains(search, comparison))
+                        {
+                            result.Add(filePath);
+                        }
 
-				foreach (var file in files)
-				{
-					if (File.ReadAllText(file).Contains(search, comparison))
-					{
-						result.Add(file);
-					}
+                        progress.Increment();
+                    }
 
-					progress.Increment();
-				}
+                    Parallel.ForEach(files, FindInFile);
 
-				return result;
-			});
-		}
-	}
+                    return new SearchResult
+                    {
+                        Search = search,
+                        FilesScanned = files.Length,
+                        SearchMode = option,
+                        SearchDirectory = directory,
+                        Patterns = patterns,
+                        FilesContainingSearch = result.ToArray()
+                    };
+                });
+            }
+        }
+    }
 }
