@@ -1,13 +1,20 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Finder
 {
     public class FinderSystem
     {
-        public static async Task<SearchResult> SearchInDirectoryAsync(string search, string directory, StringComparison comparison, SearchOption option, params string[] patterns)
+        public static async Task<SearchResult> SearchInDirectoryAsync(
+            string search,
+            string directory,
+            StringComparison comparison,
+            SearchOption option,
+            string[] patterns,
+            CancellationToken cancellationToken)
         {
             using (var progress = new ProgressReportScope("Finder"))
             {
@@ -20,6 +27,8 @@ namespace Finder
 
                     void FindInFile(string filePath)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        
                         if (File.ReadAllText(filePath).Contains(search, comparison))
                         {
                             result.Add(filePath);
@@ -39,7 +48,7 @@ namespace Finder
                         Patterns = patterns,
                         FilesContainingSearch = result.ToArray()
                     };
-                });
+                }, cancellationToken);
             }
         }
     }

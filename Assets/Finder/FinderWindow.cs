@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -76,8 +77,19 @@ namespace Finder
             }
         }
 
+        private CancellationTokenSource _cancellationTokenSource;
+
         private async void SearchAsync()
         {
+            if (_cancellationTokenSource != null)
+            {
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource = null;
+            }
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            
             string ToUnityProjectRelativePath(string absolutePath)
             {
                 return absolutePath.Substring(Application.dataPath.Length - "Assets".Length);
@@ -88,7 +100,8 @@ namespace Finder
                 Application.dataPath,
                 _stringComparison,
                 SearchOption.AllDirectories,
-                _patterns.Split(','));
+                _patterns.Split(','),
+                _cancellationTokenSource.Token);
 
             _result.FilesContainingSearch = _result.FilesContainingSearch.Select(ToUnityProjectRelativePath).ToArray();
             
