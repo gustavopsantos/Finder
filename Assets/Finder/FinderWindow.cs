@@ -17,7 +17,9 @@ namespace Finder
         [MenuItem("Finder/Open")]
         private static void Open()
         {
-            GetWindow<FinderWindow>(true, "Finder", true).Show();;
+            var window = GetWindow<FinderWindow>(true, "Finder", true);
+            window.minSize = new Vector2(480, 190);
+            window.Show();
         }
 
         private void OnEnable()
@@ -27,7 +29,6 @@ namespace Finder
 
         private void OnGUI()
         {
-            
             using (new GUILayout.VerticalScope("box"))
             {
                 _searchField.Present();
