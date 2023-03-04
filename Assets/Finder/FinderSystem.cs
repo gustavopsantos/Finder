@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace Finder
         public static async Task<SearchResult> SearchInDirectoryAsync(
             string search,
             string directory,
-            StringComparison comparison,
+            RegexOptions comparison,
             SearchOption option,
             string[] patterns,
             CancellationToken cancellationToken)
@@ -23,17 +24,21 @@ namespace Finder
                     var files = DirectoryUtilities.GetFiles(directory, option, patterns);
                     progress.SetTotalSteps(files.Length);
 
+                    var usages = 0;
                     var result = new ConcurrentBag<string>();
 
                     void FindInFile(string filePath)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         
-                        if (File.ReadAllText(filePath).Contains(search, comparison))
+                        var occurrences = File.ReadAllText(filePath).CountOccurrences(search, comparison);
+                        usages += occurrences;
+
+                        if (occurrences >= 1)
                         {
                             result.Add(filePath);
                         }
-
+                        
                         progress.Increment();
                     }
 
@@ -46,7 +51,8 @@ namespace Finder
                         SearchMode = option,
                         SearchDirectory = directory,
                         Patterns = patterns,
-                        FilesContainingSearch = result.ToArray()
+                        FilesContainingSearch = result.ToArray(),
+                        Occurrences = usages,
                     };
                 }, cancellationToken);
             }

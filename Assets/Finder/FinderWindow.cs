@@ -1,6 +1,6 @@
-using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
@@ -11,9 +11,9 @@ namespace Finder
     {
         private SearchField _searchField;
         private Vector2 _scrollPosition;
-        private string _patterns = "*.meta,*.unity,*.anim,*.prefab";
+        private string _patterns = "*.meta,*.unity,*.anim,*.prefab,*.cs,*.asset";
         private SearchResult _result;
-        private StringComparison _stringComparison = StringComparison.Ordinal;
+        private RegexOptions _options = RegexOptions.None;
 
         [MenuItem("Finder/Open")]
         private static void Open()
@@ -34,9 +34,9 @@ namespace Finder
             {
                 _searchField.Present();
                 _patterns = EditorGUILayout.TextField("Patterns", _patterns);
-                _stringComparison = (StringComparison)EditorGUILayout.EnumPopup("Comparison Method", _stringComparison);
+                _options = (RegexOptions)EditorGUILayout.EnumFlagsField("Options", _options);
                 EditorGUILayout.HelpBox(
-                    "Muliple patterns are comma separated. Usage example: *.meta,*.unity,*.anim,*.prefab",
+                    "Multiple patterns are comma separated. Usage example: *.meta,*.unity,*.anim,*.prefab",
                     MessageType.Info);
 
                 using (new GUIEnabledScope(!string.IsNullOrEmpty(_searchField.SearchString)))
@@ -60,7 +60,7 @@ namespace Finder
             
             using (new GUILayout.VerticalScope("box"))
             {
-                GUILayout.Label($"{_result.FilesContainingSearch.Length} results from {_result.FilesScanned.ToString("N0")} files scanned", EditorStyles.centeredGreyMiniLabel);
+                GUILayout.Label($"{_result.Occurrences} occurrences in {_result.FilesContainingSearch.Length} files from {_result.FilesScanned.ToString("N0")} files scanned", EditorStyles.centeredGreyMiniLabel);
 
                 _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
                 foreach (var path in _result.FilesContainingSearch)
@@ -98,7 +98,7 @@ namespace Finder
             _result = await FinderSystem.SearchInDirectoryAsync(
                 _searchField.SearchString,
                 Application.dataPath,
-                _stringComparison,
+                _options,
                 SearchOption.AllDirectories,
                 _patterns.Split(','),
                 _cancellationTokenSource.Token);

@@ -10,5 +10,6 @@ namespace Finder
         public string SearchDirectory;
         public string[] Patterns;
         public string[] FilesContainingSearch;
+        public int Occurrences;
     }
 }

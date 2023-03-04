@@ -11,6 +11,9 @@ namespace Finder
         {
             _previousState = GUI.color;
             GUI.color = color;
+            // Gus
+            // Gus
+            // GusxD
         }
 
         public void Dispose()
