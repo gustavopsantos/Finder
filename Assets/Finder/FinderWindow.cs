@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -43,7 +44,7 @@ namespace Finder
                 {
                     if (GUILayout.Button("Search"))
                     {
-                        SearchAsync();
+                        Task.Run(SearchAsync);
                     }
                 }
             }
@@ -79,7 +80,7 @@ namespace Finder
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        private async void SearchAsync()
+        private async Task SearchAsync()
         {
             if (_cancellationTokenSource != null)
             {
