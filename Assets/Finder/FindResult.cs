@@ -34,14 +34,14 @@ namespace Finder
             {
                 _opened = EditorGUILayout.Foldout(_opened, $"({Occurrences.Count} {(Occurrences.Count > 1 ? "hits" : "hit")}) {_path}", true);
 
-                if (GUILayout.Button(eyeIcon, GUILayout.Width(24), GUILayout.Height(16)))
+                if (GUILayout.Button(eyeIcon, GUILayout.Width(32), GUILayout.Height(20)))
                 {
                     var asset = AssetDatabase.LoadMainAssetAtPath(_path);
                     Selection.activeObject = asset;
                     EditorGUIUtility.PingObject(asset);
                 }
 
-                if (GUILayout.Button(folderIcon, GUILayout.Width(24), GUILayout.Height(16)))
+                if (GUILayout.Button(folderIcon, GUILayout.Width(32), GUILayout.Height(20)))
                 {
                     EditorUtility.RevealInFinder(_path);
                 }
