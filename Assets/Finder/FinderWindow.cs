@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -68,15 +67,6 @@ namespace Finder
                 GUILayout.Label($"Searched through {_searchedFiles:N0} files, found {_findResults.Values.Sum(fr => fr.Occurrences.Count):N0} hits in {_findResults.Count:N0} files", EditorStyles.centeredGreyMiniLabel);
 
                 _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
-                // foreach (var path in _result.FilesContainingSearch)
-                // {
-                //     if (GUILayout.Button(path))
-                //     {
-                //         var asset = AssetDatabase.LoadMainAssetAtPath(path);
-                //         Selection.activeObject = asset;
-                //         EditorGUIUtility.PingObject(asset);
-                //     }
-                // }
 
                 for (var i = 0; i < _findResults.Values.ToArray().Length; i++)
                 {

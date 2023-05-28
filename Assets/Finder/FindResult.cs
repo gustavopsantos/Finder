@@ -21,8 +21,8 @@ namespace Finder
 
         public void Present()
         {
-            var eyeIcon = EditorGUIUtility.IconContent("animationvisibilitytoggleon");
-            var folderIcon = EditorGUIUtility.IconContent("d_FolderOpened Icon");
+            var eyeIcon = EditorGUIUtility.IconContent("animationvisibilitytoggleon", "Ping");
+            var folderIcon = EditorGUIUtility.IconContent("d_FolderOpened Icon", "Reveal in Explorer");
             
             var style = new GUIStyle("Label")
             {
@@ -30,18 +30,20 @@ namespace Finder
             };
 
 
-            using (new GUILayout.HorizontalScope())
+            using (new GUILayout.HorizontalScope("box"))
             {
-                _opened = EditorGUILayout.Foldout(_opened, $"({Occurrences.Count} hit) {_path}", true);
+                _opened = EditorGUILayout.Foldout(_opened, $"({Occurrences.Count} {(Occurrences.Count > 1 ? "hits" : "hit")}) {_path}", true);
 
-                if (GUILayout.Button(eyeIcon, GUILayout.Width(32), GUILayout.Height(16)))
+                if (GUILayout.Button(eyeIcon, GUILayout.Width(24), GUILayout.Height(16)))
                 {
-                    
+                    var asset = AssetDatabase.LoadMainAssetAtPath(_path);
+                    Selection.activeObject = asset;
+                    EditorGUIUtility.PingObject(asset);
                 }
 
-                if (GUILayout.Button(folderIcon, GUILayout.Width(32), GUILayout.Height(16)))
+                if (GUILayout.Button(folderIcon, GUILayout.Width(24), GUILayout.Height(16)))
                 {
-                    
+                    EditorUtility.RevealInFinder(_path);
                 }
             }
 
@@ -57,39 +59,13 @@ namespace Finder
                         {
                             var highlighted = occurence.LineContent;
                             highlighted = highlighted.Insert(occurence.FinalIndex, "</color>");
-                            highlighted = highlighted.Insert(occurence.StartIndex, "<color=yellow>");
+                            highlighted = highlighted.Insert(occurence.StartIndex, "<color=orange>");
                             highlighted = highlighted.Trim();
-                            EditorGUILayout.LabelField($"Line {occurence.LineIndex + 1}: {highlighted}", style);
+                            EditorGUILayout.LabelField($"<i>Line {occurence.LineIndex + 1}:</i> {highlighted}", style);
                         }
                     }
                 }
             }
-        }
-
-        public static void Convert(string filePath, int characterIndex, out int lineIndex, out int localIndex)
-        {
-            using (var reader = new StreamReader(filePath))
-            {
-                lineIndex = 0;
-                var charCount = 0;
-
-                while (!reader.EndOfStream)
-                {
-                    string line = reader.ReadLine();
-                    int lineLength = line.Length + Environment.NewLine.Length; // Account for line breaks
-
-                    if (charCount + lineLength > characterIndex)
-                    {
-                        localIndex = characterIndex - charCount;
-                        return;
-                    }
-
-                    charCount += lineLength;
-                    lineIndex++;
-                }
-            }
-
-            throw new Exception();
         }
     }
 }
