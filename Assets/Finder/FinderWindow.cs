@@ -1,8 +1,3 @@
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,13 +5,19 @@ namespace Finder
 {
     public class FinderWindow : EditorWindow
     {
-        private SearchField _searchField;
-        private Vector2 _scrollPosition;
-        private string _patterns = "*.meta,*.unity,*.anim,*.prefab,*.cs,*.asset";
-        private SearchResult _result;
-        private RegexOptions _options = RegexOptions.None;
+        private HistoryTextField _findWhatField;
+        private HistoryTextField _replaceWithField;
+        private HistoryTextField _filtersField;
+        private HistoryTextField _directoryField;
 
-        [MenuItem("Finder/Open")]
+        private HistoryToggleField _includeSubFoldersField;
+        private HistoryToggleField _matchCaseField;
+        private HistoryToggleField _matchWholeWordOnlyField;
+
+        private Button _findAllButton;
+        private Button _replaceInFilesButton;
+
+        [MenuItem("Finder/Open %f")]
         private static void Open()
         {
             var window = GetWindow<FinderWindow>(true, "Finder", true);
@@ -26,87 +27,42 @@ namespace Finder
 
         private void OnEnable()
         {
-            _searchField = new SearchField("What to search");
+            _findWhatField = new HistoryTextField("Find what:", "finder-find-what");
+            _replaceWithField = new HistoryTextField("Replace with:", "finder-replace-with");
+            _filtersField = new HistoryTextField("Filters:", "finder-filters");
+            _directoryField = new HistoryTextField("Directory:", "finder-directory");
+            
+            _includeSubFoldersField = new HistoryToggleField("Include sub-folders", "finder-include-sub-folders");
+            _matchCaseField = new HistoryToggleField("Match case", "finder-match-case");
+            _matchWholeWordOnlyField = new HistoryToggleField("Match whole word only", "finder-match-whole-word-only");
+
+            _findAllButton = new Button("Find All", FindAll);
+            _replaceInFilesButton = new Button("Replace in Files", ReplaceInFiles);
         }
 
         private void OnGUI()
         {
-            using (new GUILayout.VerticalScope("box"))
-            {
-                _searchField.Present();
-                _patterns = EditorGUILayout.TextField("Patterns", _patterns);
-                _options = (RegexOptions)EditorGUILayout.EnumFlagsField("Options", _options);
-                EditorGUILayout.HelpBox(
-                    "Multiple patterns are comma separated. Usage example: *.meta,*.unity,*.anim,*.prefab",
-                    MessageType.Info);
-
-                using (new GUIEnabledScope(!string.IsNullOrEmpty(_searchField.SearchString)))
-                {
-                    if (GUILayout.Button("Search"))
-                    {
-                        Task.Run(SearchAsync);
-                    }
-                }
-            }
-
-            PresentResultSection();
+            _findWhatField.Present();
+            _replaceWithField.Present();
+            _filtersField.Present();
+            _directoryField.Present();
+            
+            _includeSubFoldersField.Present();
+            _matchCaseField.Present();
+            _matchWholeWordOnlyField.Present();
+            
+            _findAllButton.Present();
+            _replaceInFilesButton.Present();
         }
 
-        private void PresentResultSection()
+        private void FindAll()
         {
-            if (_result.FilesContainingSearch == null)
-            {
-                return;
-            }
             
-            using (new GUILayout.VerticalScope("box"))
-            {
-                GUILayout.Label($"{_result.Occurrences} occurrences in {_result.FilesContainingSearch.Length} files from {_result.FilesScanned.ToString("N0")} files scanned", EditorStyles.centeredGreyMiniLabel);
-
-                _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
-                foreach (var path in _result.FilesContainingSearch)
-                {
-                    if (GUILayout.Button(path))
-                    {
-                        var asset = AssetDatabase.LoadMainAssetAtPath(path);
-                        Selection.activeObject = asset;
-                        EditorGUIUtility.PingObject(asset);
-                    }
-                }
-
-                EditorGUILayout.EndScrollView();
-            }
         }
 
-        private CancellationTokenSource _cancellationTokenSource;
-
-        private async Task SearchAsync()
+        private void ReplaceInFiles()
         {
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
-                _cancellationTokenSource = null;
-            }
-
-            _cancellationTokenSource = new CancellationTokenSource();
             
-            string ToUnityProjectRelativePath(string absolutePath)
-            {
-                return absolutePath.Substring(Application.dataPath.Length - "Assets".Length);
-            }
-
-            _result = await FinderSystem.SearchInDirectoryAsync(
-                _searchField.SearchString,
-                Application.dataPath,
-                _options,
-                SearchOption.AllDirectories,
-                _patterns.Split(','),
-                _cancellationTokenSource.Token);
-
-            _result.FilesContainingSearch = _result.FilesContainingSearch.Select(ToUnityProjectRelativePath).ToArray();
-            
-            Repaint();
         }
     }
 }
