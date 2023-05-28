@@ -39,6 +39,10 @@ namespace Finder
                     {
                         foreach (var occurrence in Occurrences)
                         {
+                            var contents = File.ReadAllText(_path);
+                            var startIndex = Mathf.Clamp(occurrence - 10, 0, int.MaxValue);
+                            var finalIndex = Mathf.Clamp(occurrence + _search.Length + 10, int.MinValue, contents.Length);
+                            
                             var lines = File.ReadAllLines(_path);
                             Convert(_path, occurrence, out var lineIndex, out var localIndex);
                             var line = lines[lineIndex];
