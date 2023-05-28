@@ -122,7 +122,7 @@ namespace Finder
                 ? @"\b" + Regex.Escape(pattern) + @"\b"
                 : Regex.Escape(pattern);
             
-            var regex = new Regex(regexPattern , RegexOptions.IgnoreCase);
+            var regex = new Regex(regexPattern , _matchCaseField.Value ? RegexOptions.None : RegexOptions.IgnoreCase);
             var matches = regex.Matches(input);
             var indices = new int[matches.Count];
         
