@@ -119,8 +119,8 @@ namespace Finder
         private int[] FindOccurrences(string input, string pattern)
         {
             var regexPattern = _matchWholeWordOnlyField.Value
-                ? Regex.Escape(pattern)
-                : @"\b" + Regex.Escape(pattern) + @"\b";
+                ? @"\b" + Regex.Escape(pattern) + @"\b"
+                : Regex.Escape(pattern);
             
             var regex = new Regex(regexPattern , RegexOptions.IgnoreCase);
             var matches = regex.Matches(input);
