@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -57,21 +58,28 @@ namespace Finder
             _findAllButton.Present();
             _replaceInFilesButton.Present();
 
-            foreach (var tuple in _findResult)
+            GUILayout.Label($"Searched through {_searchedFiles} files, found {_findResults.Sum(fr => fr.Occurrences.Length)} hits in {_findResults.Count} files");
+            
+            foreach (var findResult in _findResults)
             {
-                GUILayout.Label($"[{tuple.Item2.Length}] {tuple.Item1}");
+                findResult.Present();
             }
         }
 
-        private readonly List<(string, int[])> _findResult = new List<(string, int[])>();
+        private int _searchedFiles;
+        private readonly List<FindResult> _findResults = new List<FindResult>();
 
         private void FindAll()
         {
+            _findResults.Clear();
+            
             var files = GetFiles(
                 _directoryField.Value,
                 _includeSubFoldersField.Value ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly,
                 _filtersField.Value.Split(',')
             );
+
+            _searchedFiles = files.Length;
 
             foreach (var file in files)
             {
@@ -80,8 +88,7 @@ namespace Finder
 
                 if (occurrences.Length > 0)
                 {
-                    var tuple = (file, occurrences);
-                    _findResult.Add(tuple);
+                    _findResults.Add(new FindResult(file, _findWhatField.Value, occurrences));
                 }
             }
         }
@@ -91,7 +98,6 @@ namespace Finder
             
         }
         
-                    
         public static string[] GetFiles(string directory, SearchOption option, params string[] patterns)
         {
             var result = new List<string>();

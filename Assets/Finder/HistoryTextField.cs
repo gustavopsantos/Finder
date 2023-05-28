@@ -14,14 +14,19 @@ namespace Finder
         {
             _label = label;
             _storageId = storageId;
-            Value = EditorPrefs.GetString(_storageId, string.Empty);
+            Value = EditorPrefs.GetString(_storageId, string.Empty);  
         }
 
         public void Present()
         {
             using (new GUILayout.HorizontalScope())
             {
+                EditorGUI.BeginChangeCheck();
                 Value = EditorGUILayout.TextField(_label, Value);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    EditorPrefs.SetString(_storageId, Value);
+                }
 
                 if (GUILayout.Button(GUIContent.none, EditorStyles.popup, GUILayout.Width(20)))
                 {
@@ -36,7 +41,11 @@ namespace Finder
 
         private void AddMenuItem(GenericMenu menu, string item)
         {
-            menu.AddItem(new GUIContent(item), false, () => Value = item);
+            menu.AddItem(new GUIContent(item), false, () =>
+            {
+                Value = item;
+                EditorPrefs.SetString(_storageId, Value);
+            });
         }
     }
 }
