@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -50,19 +53,73 @@ namespace Finder
             _includeSubFoldersField.Present();
             _matchCaseField.Present();
             _matchWholeWordOnlyField.Present();
-            
+
             _findAllButton.Present();
             _replaceInFilesButton.Present();
+
+            foreach (var tuple in _findResult)
+            {
+                GUILayout.Label($"[{tuple.Item2.Length}] {tuple.Item1}");
+            }
         }
+
+        private readonly List<(string, int[])> _findResult = new List<(string, int[])>();
 
         private void FindAll()
         {
-            
+            var files = GetFiles(
+                _directoryField.Value,
+                _includeSubFoldersField.Value ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly,
+                _filtersField.Value.Split(',')
+            );
+
+            foreach (var file in files)
+            {
+                var fileContents = File.ReadAllText(file);
+                var occurrences = FindOccurrences(fileContents, _findWhatField.Value);
+
+                if (occurrences.Length > 0)
+                {
+                    var tuple = (file, occurrences);
+                    _findResult.Add(tuple);
+                }
+            }
         }
 
         private void ReplaceInFiles()
         {
             
+        }
+        
+                    
+        public static string[] GetFiles(string directory, SearchOption option, params string[] patterns)
+        {
+            var result = new List<string>();
+
+            foreach (var pattern in patterns)
+            {
+                result.AddRange(Directory.GetFiles(directory, pattern, option));
+            }
+
+            return result.ToArray();
+        }
+    
+        private int[] FindOccurrences(string input, string pattern)
+        {
+            var regexPattern = _matchWholeWordOnlyField.Value
+                ? Regex.Escape(pattern)
+                : @"\b" + Regex.Escape(pattern) + @"\b";
+            
+            var regex = new Regex(regexPattern , RegexOptions.IgnoreCase);
+            var matches = regex.Matches(input);
+            var indices = new int[matches.Count];
+        
+            for (var i = 0; i < matches.Count; i++)
+            {
+                indices[i] = matches[i].Index;
+            }
+        
+            return indices;
         }
     }
 }

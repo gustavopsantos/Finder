@@ -8,30 +8,35 @@ namespace Finder
         private readonly string _label;
         private readonly string _storageId;
 
-        private string _content;
+        public string Value { get; private set; }
 
         public HistoryTextField(string label, string storageId)
         {
             _label = label;
             _storageId = storageId;
-            _content = EditorPrefs.GetString(_storageId, string.Empty);
+            Value = EditorPrefs.GetString(_storageId, string.Empty);
         }
 
         public void Present()
         {
             using (new GUILayout.HorizontalScope())
             {
-                _content = EditorGUILayout.TextField(_label, _content);
+                Value = EditorGUILayout.TextField(_label, Value);
 
                 if (GUILayout.Button(GUIContent.none, EditorStyles.popup, GUILayout.Width(20)))
                 {
                     var menu = new GenericMenu();
-                    menu.AddItem(new GUIContent(@"C:\git\ProjectOne"), false, () => { });
-                    menu.AddItem(new GUIContent(@"C:\git\ProjectTwo"), false, () => { });
-                    menu.AddItem(new GUIContent(@"C:\git\ProjectThree"), false, () => { });
+                    AddMenuItem(menu, "class");
+                    AddMenuItem(menu, "*.cs");
+                    AddMenuItem(menu, "Assets");
                     menu.ShowAsContext();
                 }
             }
+        }
+
+        private void AddMenuItem(GenericMenu menu, string item)
+        {
+            menu.AddItem(new GUIContent(item), false, () => Value = item);
         }
     }
 }
