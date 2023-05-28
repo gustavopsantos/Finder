@@ -2,4 +2,4 @@ public struct Point
 {
 }
 
-// Class class classy
+// Class class classy class

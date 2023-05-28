@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -58,16 +59,16 @@ namespace Finder
             _findAllButton.Present();
             _replaceInFilesButton.Present();
 
-            GUILayout.Label($"Searched through {_searchedFiles} files, found {_findResults.Sum(fr => fr.Occurrences.Length)} hits in {_findResults.Count} files");
+            GUILayout.Label($"Searched through {_searchedFiles} files, found {_findResults.Values.Sum(fr => fr.Occurrences.Count)} hits in {_findResults.Count} files");
             
-            foreach (var findResult in _findResults)
+            foreach (var findResult in _findResults.Values)
             {
                 findResult.Present();
             }
         }
 
         private int _searchedFiles;
-        private readonly List<FindResult> _findResults = new List<FindResult>();
+        private readonly ConcurrentDictionary<string, FindResult> _findResults = new();
 
         private void FindAll()
         {
@@ -83,12 +84,17 @@ namespace Finder
 
             foreach (var file in files)
             {
-                var fileContents = File.ReadAllText(file);
-                var occurrences = FindOccurrences(fileContents, _findWhatField.Value);
+                var lines = File.ReadAllLines(file);
 
-                if (occurrences.Length > 0)
+                for (var i = 0; i < lines.Length; i++)
                 {
-                    _findResults.Add(new FindResult(file, _findWhatField.Value, occurrences));
+                    var lineOccurrences = FindOccurrences(lines[i], _findWhatField.Value);
+
+                    foreach (var lineOccurrence in lineOccurrences)
+                    {
+                        var fr = _findResults.GetOrAdd(file, f => new FindResult(f, _findWhatField.Value));
+                        fr.Occurrences.Add( new Occurrence(file,lines[i],i, lineOccurrence, lineOccurrence + _findWhatField.Value.Length));
+                    }
                 }
             }
         }
