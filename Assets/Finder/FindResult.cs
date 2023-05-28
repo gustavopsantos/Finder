@@ -10,24 +10,40 @@ namespace Finder
     {
         private readonly string _path;
         private readonly string _search;
-        public List<Occurrence> Occurrences { get; private set; } = new();
+        public List<Occurrence> Occurrences { get; } = new();
 
         private bool _opened;
 
-        public FindResult(string path, string search)
+        public FindResult(string path)
         {
             _path = path;
-            _search = search;
         }
 
         public void Present()
         {
+            var eyeIcon = EditorGUIUtility.IconContent("animationvisibilitytoggleon");
+            var folderIcon = EditorGUIUtility.IconContent("d_FolderOpened Icon");
+            
             var style = new GUIStyle("Label")
             {
                 richText = true
             };
 
-            _opened = EditorGUILayout.Foldout(_opened, $"({Occurrences.Count} hit) {_path}");
+
+            using (new GUILayout.HorizontalScope())
+            {
+                _opened = EditorGUILayout.Foldout(_opened, $"({Occurrences.Count} hit) {_path}", true);
+
+                if (GUILayout.Button(eyeIcon, GUILayout.Width(32), GUILayout.Height(16)))
+                {
+                    
+                }
+
+                if (GUILayout.Button(folderIcon, GUILayout.Width(32), GUILayout.Height(16)))
+                {
+                    
+                }
+            }
 
             using (new GUILayout.HorizontalScope())
             {
@@ -43,7 +59,7 @@ namespace Finder
                             highlighted = highlighted.Insert(occurence.FinalIndex, "</color>");
                             highlighted = highlighted.Insert(occurence.StartIndex, "<color=yellow>");
                             highlighted = highlighted.Trim();
-                            EditorGUILayout.LabelField($"Line {occurence.LineIndex}: {highlighted}", style);
+                            EditorGUILayout.LabelField($"Line {occurence.LineIndex + 1}: {highlighted}", style);
                         }
                     }
                 }

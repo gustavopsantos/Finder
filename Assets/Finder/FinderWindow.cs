@@ -2,9 +2,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using Vector2 = UnityEngine.Vector2;
 
 namespace Finder
 {
@@ -45,6 +47,8 @@ namespace Finder
             _replaceInFilesButton = new Button("Replace in Files", ReplaceInFiles);
         }
 
+        private Vector2 _scrollPosition;
+
         private void OnGUI()
         {
             _findWhatField.Present();
@@ -59,11 +63,28 @@ namespace Finder
             _findAllButton.Present();
             _replaceInFilesButton.Present();
 
-            GUILayout.Label($"Searched through {_searchedFiles} files, found {_findResults.Values.Sum(fr => fr.Occurrences.Count)} hits in {_findResults.Count} files");
-            
-            foreach (var findResult in _findResults.Values)
+            using (new GUILayout.VerticalScope("box"))
             {
-                findResult.Present();
+                GUILayout.Label($"Searched through {_searchedFiles:N0} files, found {_findResults.Values.Sum(fr => fr.Occurrences.Count):N0} hits in {_findResults.Count:N0} files", EditorStyles.centeredGreyMiniLabel);
+
+                _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
+                // foreach (var path in _result.FilesContainingSearch)
+                // {
+                //     if (GUILayout.Button(path))
+                //     {
+                //         var asset = AssetDatabase.LoadMainAssetAtPath(path);
+                //         Selection.activeObject = asset;
+                //         EditorGUIUtility.PingObject(asset);
+                //     }
+                // }
+
+                for (var i = 0; i < _findResults.Values.ToArray().Length; i++)
+                {
+                    var findResult = _findResults.Values.ToArray()[i];
+                    findResult.Present();
+                }
+
+                EditorGUILayout.EndScrollView();
             }
         }
 
@@ -92,7 +113,7 @@ namespace Finder
 
                     foreach (var lineOccurrence in lineOccurrences)
                     {
-                        var fr = _findResults.GetOrAdd(file, f => new FindResult(f, _findWhatField.Value));
+                        var fr = _findResults.GetOrAdd(file, f => new FindResult(f));
                         fr.Occurrences.Add( new Occurrence(file,lines[i],i, lineOccurrence, lineOccurrence + _findWhatField.Value.Length));
                     }
                 }
