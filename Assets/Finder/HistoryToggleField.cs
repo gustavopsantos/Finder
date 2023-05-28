@@ -6,7 +6,7 @@ namespace Finder
     {
         private readonly string _label;
         private readonly string _storageId;
-        
+
         public bool Value { get; private set; }
 
         public HistoryToggleField(string label, string storageId)
@@ -18,7 +18,12 @@ namespace Finder
 
         public void Present()
         {
+            EditorGUI.BeginChangeCheck();
             Value = EditorGUILayout.Toggle(_label, Value);
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorPrefs.SetBool(_storageId, Value);
+            }
         }
     }
 }
